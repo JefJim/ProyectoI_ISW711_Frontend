@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # MongoDB service
+  mongo:
+    image: mongo:5.0
+    container_name: kids-tube-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+
+  # backend service (Node.js + Express)
+  backend:
+    build: ./backend
+    container_name: kids-tube-backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URI: ${MONGO_URI}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  # Frontend service (html + tailwindcss)
+  frontend:
+    build: ./frontend
+    container_name: kids-tube-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+# Volumes
+volumes:
+  mongo-data:
