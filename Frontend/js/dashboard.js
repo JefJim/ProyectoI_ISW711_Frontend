@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-        window.location.href = '/pages/login.html';
+        window.location.href = '../pages/login.html';
         return;
     }
 
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function enterRestrictedUser(userId) {
     localStorage.setItem('restrictedUserId', userId);
-    window.location.href = '/pages/restricted.html';
+    window.location.href = '../pages/restricted.html';
 }
 document.getElementById('logoutButton').addEventListener('click', () => {
     // Borrar el user._id del localStorage

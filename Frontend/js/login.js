@@ -17,10 +17,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
         if (response.ok) {
             localStorage.setItem('token', data.token);
-
             localStorage.setItem('userId', data.Id);
-            
-            window.location.href = '/pages/dashboard.html'; // Redirigir al dashboard
+            window.location.href = '../pages/dashboard.html'; // Redirect to dashboard
         } else {
             alert(data.error || 'Error al iniciar sesión');
         }
