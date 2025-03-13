@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadVideos(playlistId) {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`http://localhost:3000/api/videos/playlist/${playlistId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -51,6 +52,7 @@ function closeVideoModal() {
 }
 
 async function editVideo(videoId) {
+    const token = localStorage.getItem('token');
     const response = await fetch(`http://localhost:3000/api/videos/${videoId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -67,6 +69,7 @@ async function editVideo(videoId) {
 }
 
 async function deleteVideo(videoId) {
+    const token = localStorage.getItem('token');
     if (confirm('¿Estás seguro de eliminar este video?')) {
         await fetch(`http://localhost:3000/api/videos/${videoId}`, {
             method: 'DELETE',
@@ -89,6 +92,7 @@ document.getElementById('videoForm').addEventListener('submit', async (e) => {
 
     const apiUrl = videoId ? `http://localhost:3000/api/videos/${videoId}` : 'http://localhost:3000/api/videos'; // Cambiado de 'url' a 'apiUrl'
     const method = videoId ? 'PUT' : 'POST';
+    const token = localStorage.getItem('token');
 
     await fetch(apiUrl, {
         method,
