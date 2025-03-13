@@ -9,13 +9,16 @@
 <body class="bg-gray-100">
     <div class="container mx-auto p-4">
         <h1 class="text-3xl font-bold text-center mb-8">Playlists</h1>
-        <button onclick="openAddPlaylistModal()" class="bg-blue-500 text-white px-4 py-2 rounded">Agregar Playlist</button>
+        <button onclick="openAddPlaylistModal()" class="bg-red-500 text-white px-4 py-2 rounded">Agregar Playlist</button>
+        <button onclick="window.location.href='dashboard.html'" class="bg-red-500 text-white px-4 py-2 rounded">
+            Volver
+        </button>
         <div id="playlistsList" class="mt-4">
-            <!-- La lista de playlists se cargará aquí -->
+            <!-- Playlist will load here -->
         </div>
     </div>
 
-    <!-- Modal para agregar/editar playlists -->
+    <!-- Modal for add/edit playlists -->
     <div id="playlistModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
         <div class="bg-white p-6 rounded-lg w-full max-w-md">
             <h2 class="text-xl font-semibold mb-4" id="modalTitle">Agregar Playlist</h2>
@@ -26,19 +29,19 @@
                     <input type="text" id="name" class="w-full px-3 py-2 border rounded-lg" required>
                 </div>
                 <div class="mb-4">
-                    <label for="associatedProfiles" class="block text-gray-700">Perfiles Asociados</label>
-                    <select id="associatedProfiles" class="w-full px-3 py-2 border rounded-lg" multiple required>
-                        <!-- Las opciones se cargarán dinámicamente -->
-                    </select>
+                    <label class="block text-gray-700">Perfiles Asociados</label>
+                    <div id="associatedProfilesList" class="mt-2">
+                        <!-- checkbox will load here -->
+                    </div>
                 </div>
                 <div class="flex justify-end">
                     <button type="button" onclick="closePlaylistModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancelar</button>
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Guardar</button>
+                    <button id="submitbutton" type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="/js/playlists.js"></script>
+    <script src="../js/playlist.js"></script>
 </body>
 </html>
