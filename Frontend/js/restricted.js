@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const restrictedUserId = localStorage.getItem('restrictedUserId');
     if (!restrictedUserId) {
-        window.location.href = '/pages/login.html';
+        window.location.href = '../pages/login.html';
         return;
     }
 

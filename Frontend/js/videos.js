@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-        window.location.href = '/pages/login.html';
+        window.location.href = '../pages/login.html';
         return;
     }
 
     const playlistId = new URLSearchParams(window.location.search).get('playlistId');
     if (!playlistId) {
-        window.location.href = '/pages/playlists.html';
+        window.location.href = '../pages/playlists.html';
         return;
     }
 
