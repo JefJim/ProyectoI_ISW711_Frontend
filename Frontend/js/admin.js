@@ -38,8 +38,11 @@ function openAddUserModal() {
     document.getElementById('modalTitle').textContent = 'Agregar Usuario';
     document.getElementById('userForm').reset();
     document.getElementById('userModal').classList.remove('hidden');
+<<<<<<< HEAD
     document.getElementById('button').textContent = 'Guardar';
 
+=======
+>>>>>>> caf859564bc5a454520f25c0ff0289ff3666ff99
 }
 
 function closeUserModal() {

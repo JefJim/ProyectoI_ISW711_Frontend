@@ -1,7 +1,7 @@
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const formData = {
+    const formData = {  //form information
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
         phone: document.getElementById('phone').value,
@@ -25,7 +25,11 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 
         if (response.ok) {
             alert('Usuario registrado exitosamente');
+<<<<<<< HEAD
             window.location.href = '../pages/login.html'; // Redirigir al login
+=======
+            window.location.href = '../pages/login.html'; // Redirect to login
+>>>>>>> caf859564bc5a454520f25c0ff0289ff3666ff99
         } else {
             alert(data.error || 'Error al registrar el usuario');
         }
