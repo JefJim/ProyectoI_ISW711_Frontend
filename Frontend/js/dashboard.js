@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-        window.location.href = '/pages/login.html';
+        window.location.href = '../pages/login.html';
         return;
     }
 
@@ -29,15 +29,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function enterRestrictedUser(userId) {
     localStorage.setItem('restrictedUserId', userId);
-    window.location.href = '/pages/restricted.html';
+    window.location.href = '../pages/restricted.html';
 }
 document.getElementById('logoutButton').addEventListener('click', () => {
     // Borrar el user._id del localStorage
     localStorage.removeItem('userId');
 
-    // Borrar el token del localStorage (si lo tienes almacenado)
+    // Borrar el token del localStorage (si lo tiene almacenado)
     localStorage.removeItem('token');
 
     // Redirigir al usuario a la página de inicio de sesión o a la página principal
-    window.location.href = 'login.html'; // Cambia 'login.html' por la página que desees
+    window.location.href = 'login.html'; 
 });

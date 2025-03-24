@@ -20,7 +20,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
             localStorage.setItem('userId', data.Id);
             
-            window.location.href = '/pages/dashboard.html'; // Redirigir al dashboard
+            window.location.href = '/Frontend/pages/dashboard.html'; // Redirigir al dashboard
         } else {
             alert(data.error || 'Error al iniciar sesión');
         }
