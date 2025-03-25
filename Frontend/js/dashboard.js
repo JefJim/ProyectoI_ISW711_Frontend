@@ -25,19 +25,102 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         alert('Error al cargar los usuarios restringidos');
     }
+
+    // ADding event listeners to restricted links
+    setupRestrictedLinks();
 });
 
-function enterRestrictedUser(userId) {
-    localStorage.setItem('restrictedUserId', userId);
-    window.location.href = '../pages/restricted.html';
+async function enterRestrictedUser(userId) {
+    const userPin = prompt('Ingrese el PIN del usuario restringido:');
+
+    if (!userPin) {
+        alert('Debe ingresar un PIN para continuar.');
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:3000/api/users/verify-pin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ id: userId, pin: userPin })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('restrictedUserId', userId);
+            window.location.href = '../pages/restricted.html';
+        } else {
+            alert(data.error || 'PIN incorrecto. Intente de nuevo.');
+        }
+    } catch (error) {
+        alert('Error al verificar el PIN. Intente nuevamente.');
+    }
 }
+
+function setupRestrictedLinks() {
+    const restrictedLink = document.querySelector('a[href="admin.html"]');
+    const adminLink = document.querySelector('a[href="playlist.html"]');
+
+    if (restrictedLink) {
+        restrictedLink.addEventListener('click', async (event) => {
+            event.preventDefault();
+            verifyUserPin('admin.html');
+        });
+    }
+
+    if (adminLink) {
+        adminLink.addEventListener('click', async (event) => {
+            event.preventDefault();
+            verifyUserPin('playlist.html');
+        });
+    }
+}
+
+async function verifyUserPin(redirectUrl) {
+    const userId = localStorage.getItem('userId');
+    console.log(userId);
+    if (!userId) {
+        alert('Debes iniciar sesión primero.');
+        return;
+    }
+
+    const userPin = prompt('Ingrese su PIN de verificación:');
+
+    if (!userPin) {
+        alert('Debe ingresar un PIN para continuar.');
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:3000/api/users/main/verify-pin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ id: userId, pin: userPin })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            window.location.href = redirectUrl;
+        } else {
+            alert(data.error || 'PIN incorrecto. Intente de nuevo.');
+        }
+    } catch (error) {
+        alert('Error al verificar el PIN. Intente nuevamente.');
+    }
+}
+
 document.getElementById('logoutButton').addEventListener('click', () => {
-    // Borrar el user._id del localStorage
     localStorage.removeItem('userId');
-
-    // Borrar el token del localStorage (si lo tiene almacenado)
     localStorage.removeItem('token');
-
-    // Redirigir al usuario a la página de inicio de sesión o a la página principal
-    window.location.href = 'login.html'; 
+    window.location.href = 'login.html';
 });
