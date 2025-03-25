@@ -63,7 +63,31 @@ async function editUser(userId) {
     document.getElementById('userId').value = user._id;
     document.getElementById('fullName').value = user.fullName;
     document.getElementById('pin').value = user.pin;
-    document.getElementById('avatar').value = user.avatar;
+    const avatarPreview = document.getElementById('avatarPreview');
+    const avatarInput = document.getElementById('avatar');
+    
+    if (user.avatar) {
+        avatarPreview.src = user.avatar; // Show actual image (base64 o URL)
+        avatarPreview.classList.remove('hidden');
+    } else {
+        avatarPreview.classList.add('hidden');
+    }
+    
+    // Clean input file when modal is opened
+    avatarInput.value = ''; 
+    
+    // Event to convert image to base64 when a new file is selected
+    avatarInput.addEventListener('change', function () {
+        const file = avatarInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                avatarPreview.src = e.target.result; // Show image preview
+                avatarPreview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file); // convert to base64
+        }
+    });
     document.getElementById('userModal').classList.remove('hidden');
 
     const editForm = document.getElementById('userForm');
@@ -74,13 +98,51 @@ async function editUser(userId) {
         const updatedUser = {
             fullName: document.getElementById('fullName').value,
             pin: document.getElementById('pin').value,
-            avatar: document.getElementById('avatar').value,
         };
+        
+        // if file is selected, convert it to base64
+        const avatarFile = document.getElementById('avatar').files[0];
+        if (avatarFile) {
+            const reader = new FileReader();
+            reader.onloadend = async function () {
+                updatedUser.avatar = reader.result; // Base64 new avatar
+        
+                await sendUpdatedUser(updatedUser);
+            };
+            reader.readAsDataURL(avatarFile);
+        } else {
+            updatedUser.avatar = avatarPreview.src; // Maintain the current avatar
+            await sendUpdatedUser(updatedUser);
+        }
+        
+        async function sendUpdatedUser(userData) {
+            try {
+                const updateResponse = await fetch(`http://localhost:3000/api/users/${userId}`, {
+                    method: 'PATCH', // o 'PATCH'
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(userData),
+                });
+        
+                if (updateResponse.ok) {
+                   
+                    document.getElementById('userModal').classList.add('hidden');
+                    loadUsers();
+                } else {
+                    const errorData = await updateResponse.json();
+                    alert(errorData.error || 'Error al actualizar el usuario');
+                }
+            } catch (error) {
+                alert('Error al conectar con el servidor');
+            }
+        }
 
         try {
             // sending put request to the server
             const updateResponse = await fetch(`http://localhost:3000/api/users/${userId}`, {
-                method: 'PUT', // or 'PATCH'
+                method: 'PATCH', // or 'PATCH'
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
@@ -121,58 +183,58 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     const userId = localStorage.getItem('userId');
     const fullName = document.getElementById('fullName').value;
     const pin = document.getElementById('pin').value;
-    const avatarInput = document.getElementById('avatar'); // Obtener el input del archivo
-    const avatarFile = avatarInput.files[0]; // Obtener el archivo de imagen
+    const avatarInput = document.getElementById('avatar'); // Get the input file
+    const avatarFile = avatarInput.files[0]; // Get the file from the input
 
-    // Verifica que el PIN tenga 6 dígitos
+    // Verify the pin has 6 digits
     const pinRegex = /^[0-9]{6}$/;
     if (!pinRegex.test(pin)) {
         alert('El PIN debe tener 6 dígitos.');
-        return; // Detener el proceso si el PIN no es válido
+        return; // Stop process if pin is invalid
     }
 
-    // Verifica que un avatar haya sido seleccionado y sea una imagen válida
+    // Verify an image is selected and it's valid
     if (!avatarFile) {
         alert('Por favor, selecciona una imagen para el avatar.');
-        return; // Detener el proceso si no se selecciona una imagen
+        return; //Stop process if no image is selected
     }
 
     const validAvatarExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
     const avatarExtension = avatarFile.name.slice(avatarFile.name.lastIndexOf('.')).toLowerCase();
     if (!validAvatarExtensions.includes(avatarExtension)) {
         alert('Por favor, selecciona una imagen válida para el avatar.');
-        return; // Detener el proceso si el avatar no es válido
+        return; // Stop process if image is invalid
     }
 
-    // Usamos FileReader para convertir la imagen a una URL de datos base64
+    // filereader to convert image to base64
     const reader = new FileReader();
     reader.onloadend = async function () {
-        const avatarBase64 = reader.result; // Esto es el contenido base64 de la imagen
+        const avatarBase64 = reader.result; 
 
-        // Construir el objeto con los datos del formulario
+        // Build object with user data
         const userData = {
             fullName: fullName,
             pin: pin,
-            avatar: avatarBase64, // Guardar la imagen como base64
-            parentUser: userId // Si es necesario incluir el userId
+            avatar: avatarBase64, // Save the image as base64
+            parentUser: userId 
         };
 
         if (document.getElementById('button').textContent === 'Guardar') {
-            // Enviar la solicitud con el cuerpo en formato JSON
+            // Send data
             await fetch('http://localhost:3000/api/users', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify(userData), // Enviar los datos como JSON
+                body: JSON.stringify(userData), 
             });
         
-            closeUserModal();  // Cierra el modal después de guardar
-            await loadUsers(); // Recarga la lista de usuarios
+            closeUserModal();  // Close modal after saving
+            await loadUsers(); // reload users
         }
     };
 
-    // Leer la imagen como URL base64
+    // read the file as base64
     reader.readAsDataURL(avatarFile);
 });
