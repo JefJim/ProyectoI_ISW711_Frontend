@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '../pages/login.html';
         return;
     }
-
+    // ADding event listeners to restricted links
+    setupRestrictedLinks();
     try {
         const response = await fetch('http://localhost:3000/api/users', {
             headers: {
@@ -26,8 +27,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('Error al cargar los usuarios restringidos');
     }
 
-    // ADding event listeners to restricted links
-    setupRestrictedLinks();
 });
 
 async function enterRestrictedUser(userId) {
