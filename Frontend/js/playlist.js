@@ -38,7 +38,7 @@ async function loadPlaylists() {
             </div>
         `).join('');
     } catch (error) {
-        alert('Error al cargar las playlists');
+        
     }
 }
 

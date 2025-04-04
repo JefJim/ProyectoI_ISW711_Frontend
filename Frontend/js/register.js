@@ -25,11 +25,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 
         if (response.ok) {
             alert('Usuario registrado exitosamente');
-<<<<<<< HEAD
             window.location.href = '../pages/login.html'; // Redirigir al login
-=======
-            window.location.href = '../pages/login.html'; // Redirect to login
->>>>>>> caf859564bc5a454520f25c0ff0289ff3666ff99
         } else {
             alert(data.error || 'Error al registrar el usuario');
         }
