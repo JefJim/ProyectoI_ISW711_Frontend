@@ -5,10 +5,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     await loadPlaylists();
-    await loadRestrictedUsers();
 });
 
 async function loadPlaylists() {
+    loadRestrictedUsers (); // Load users in checkboxes
     try {
         const token = localStorage.getItem('token');
         const response = await fetch('http://localhost:3000/api/playlists', {
@@ -70,6 +70,7 @@ function openAddPlaylistModal() {
     document.getElementById('modalTitle').textContent = 'Agregar Playlist';
     document.getElementById('playlistForm').reset();
     document.getElementById('playlistId').value = '';
+    document.getElementById('submitbutton').textContent = 'Guardar';
     document.getElementById('playlistModal').classList.remove('hidden');
 }
 
@@ -124,8 +125,8 @@ async function deletePlaylist(playlistId) {
                 'Authorization': `Bearer ${token}`,
             },
         });
-        await loadPlaylists();
     }
+    loadPlaylists();
 }
 
 document.getElementById('playlistForm').addEventListener('submit', async (e) => {
