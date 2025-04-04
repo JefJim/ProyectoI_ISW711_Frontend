@@ -19,4 +19,7 @@ JavaScript para interactuar con la API del backend y gestiona la interacción de
    npm install
 4. Corre la aplicacion
    npm start
-
+   
+#Creadores
+Jefry Gerardo Jimenez Rocha
+María José Jiménez Morales
