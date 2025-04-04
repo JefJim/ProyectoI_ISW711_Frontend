@@ -194,7 +194,7 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     }
 
     // Verify an image is selected and it's valid
-    if (!avatarFile) {
+    if (!avatarFile && document.getElementById('button').textContent === 'Guardar') {
         alert('Por favor, selecciona una imagen para el avatar.');
         return; //Stop process if no image is selected
     }
