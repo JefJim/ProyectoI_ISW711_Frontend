@@ -36,7 +36,8 @@
                 </div>
                 <div class="mb-4">
                     <label for="avatar" class="block text-gray-700">Avatar</label>
-                    <input type="file" id="avatar" accept= ".jpg,.jpeg,.png,.gif" class="w-full px-3 py-2 border rounded-lg" required>
+                    <input type="file" id="avatar" accept=".jpg,.jpeg,.png,.gif" class="w-full px-3 py-2 border rounded-lg">
+                    <img id="avatarPreview" class="mt-2 hidden w-20 h-20 rounded-lg" alt="Avatar actual">
                 </div>
                 <div class="flex justify-end">
                     <button type="button" onclick="closeUserModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancelar</button>
@@ -45,7 +46,7 @@
             </form>
         </div>
     </div>
-    <script src="/ProyectoI_ISW711_Frontend/Frontend/js/admin.js"></script>
+    <script src="../js/admin.js"></script>
     
 </body>
 </html>
