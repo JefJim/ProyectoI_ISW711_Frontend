@@ -22,6 +22,16 @@
         </form>
         <p class="text-center mt-4">¿No tienes una cuenta? <a href="../pages/register.html" class="text-blue-500">Regístrate</a></p>
     </div>
+        <!-- Modal para 2FA (oculto inicialmente) -->
+        <div id="twoFAModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                <h2 class="text-2xl font-bold mb-4">Verificación en Dos Pasos</h2>
+                <p class="mb-4">Ingresa el código de 6 dígitos enviado a tu teléfono:</p>
+                <input type="text" id="verificationCode" placeholder="Código" class="w-full px-3 py-2 border rounded-lg mb-4">
+                <button id="verifyCodeBtn" class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-red-700">Verificar</button>
+                <button id="cancel2FABtn" class="w-full mt-2 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">Cancelar</button>
+            </div>
+        </div>
     <script src="../js/login.js"></script>
 
 </body>
