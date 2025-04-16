@@ -8,23 +8,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadPlaylists() {
-    loadRestrictedUsers (); // Load users in checkboxes
+    loadRestrictedUsers(); // Cargar usuarios en checkboxes
+
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:3000/api/playlists', {
+        const userId = localStorage.getItem('userId');
+
+        const query = `
+            query getPlaylistByUser($parentUser: ID!) {
+                playlistsByCreator(parentUser: $parentUser) {
+                    _id
+                    name
+                    associatedProfiles {
+                        _id
+                        fullName
+                    }
+                    videos {
+                        _id
+                        name
+                    }
+                    createdBy {
+                        _id
+                        name
+                    }
+                }
+            }
+        `;
+
+        const response = await fetch('http://localhost:3000/graphql', {
+            method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
+            body: JSON.stringify({
+                query,
+                variables: { parentUser: userId }
+            })
         });
 
-        const playlists = await response.json();
+        const result = await response.json();
+        const playlists = result.data.playlistsByCreator;
+
         const playlistsList = document.getElementById('playlistsList');
         playlistsList.innerHTML = playlists.map(playlist => `
             <div class="bg-white p-4 rounded-lg shadow-md mb-4">
                 <h3 class="text-xl font-semibold">${playlist.name}</h3>
                 <h3 class="text-xl font-semibold">
-                    Perfiles asociados: ${playlist.associatedProfiles.length > 0 
-                        ? playlist.associatedProfiles.map(profile => profile.fullName).join(', ') //Maping the profiles to get the full name
+                    Perfiles asociados: ${playlist.associatedProfiles && playlist.associatedProfiles.length > 0 
+                        ? playlist.associatedProfiles.map(profile => profile.fullName).join(', ')
                         : 'Sin perfiles asociados'}
                 </h3>
                 <p>Videos: ${playlist.videos.length}</p>
@@ -38,7 +70,7 @@ async function loadPlaylists() {
             </div>
         `).join('');
     } catch (error) {
-        
+        console.error('Error cargando playlists:', error);
     }
 }
 
