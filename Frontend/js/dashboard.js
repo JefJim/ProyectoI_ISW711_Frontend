@@ -1,32 +1,78 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
-    if (!token) {
+    const userId = localStorage.getItem('userId');
+    if (!token || !userId) {
         window.location.href = '../pages/login.html';
         return;
     }
-    // ADding event listeners to restricted links
-    setupRestrictedLinks();
-    try {
-        const response = await fetch('http://localhost:3000/api/users', {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-        });
 
-        const users = await response.json();
+    setupRestrictedLinks();
+
+    try {
+        const fetchGraphQL = async (query, variables = {}) => {
+            const response = await fetch('http://localhost:3000/graphql', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ query, variables })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.errors?.[0]?.message || 'Error en la consulta');
+            }
+
+            return await response.json();
+        };
+
+        // GraphQL Query con variables
+        const query = `
+            query GetRestrictedUsersByFather($parentUser: ID!) {
+                restrictedUserByFather(parentUser: $parentUser) {
+                    _id
+                    fullName
+                    avatar
+                    pin
+                }
+            }
+        `;
+
+        const result = await fetchGraphQL(query, { parentUser: userId });
 
         const usersContainer = document.getElementById('restrictedUsers');
+        const users = result.data?.restrictedUserByFather;
+
+        if (!users || users.length === 0) {
+            usersContainer.innerHTML = '<p class="text-center text-gray-500">No hay usuarios restringidos</p>';
+            return;
+        }
+
         usersContainer.innerHTML = users.map(user => `
             <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                <img src="${user.avatar}" alt="${user.fullName}" class="w-24 h-24 mx-auto rounded-full">
+                <img src="${user.avatar || 'default-avatar.png'}" 
+                     alt="${user.fullName}" 
+                     class="w-24 h-24 mx-auto rounded-full object-cover">
                 <h2 class="text-xl font-semibold mt-2">${user.fullName}</h2>
-                <button onclick="enterRestrictedUser('${user._id}')" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Entrar</button>
+                <p class="text-gray-500 mt-1">PIN: ${user.pin}</p>
+                <button onclick="enterRestrictedUser('${user._id}')" 
+                        class="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                    Entrar
+                </button>
             </div>
         `).join('');
-    } catch (error) {
-        alert('Error al cargar los usuarios restringidos');
-    }
 
+    } catch (error) {
+        console.error('Error:', error);
+        if (error.message.includes('No autenticado')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            window.location.href = '../pages/login.html';
+        } else {
+            alert(`Error: ${error.message}`);
+        }
+    }
 });
 
 async function enterRestrictedUser(userId) {
@@ -82,7 +128,6 @@ function setupRestrictedLinks() {
 
 async function verifyUserPin(redirectUrl) {
     const userId = localStorage.getItem('userId');
-    console.log(userId);
     if (!userId) {
         alert('Debes iniciar sesión primero.');
         return;
