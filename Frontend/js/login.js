@@ -24,9 +24,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             document.getElementById('twoFAModal').classList.remove('hidden');
             document.getElementById('verifyCodeBtn').setAttribute('data-email', email);
         } else {
+            
             // Redirigir si no requiere 2FA (por si acaso)
             window.location.href = '/dashboard.html';
         }
+        
     } catch (error) {
         console.error('Error en login:', error);
         alert(error.message || 'Error en el servidor');
@@ -43,13 +45,11 @@ document.getElementById('verifyCodeBtn').addEventListener('click', async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, code }),
         });
-        console.log(response);
         // Verifica si la respuesta es exitosa (código 200-299)
         const data = await response.json();
-        console.log(data);
         if (response.ok) {
             localStorage.setItem('token', data.token);
-            localStorage.setItem('userId', data.Id);
+            localStorage.setItem('userId', data.user.id);
             window.location.href = '../pages/dashboard.html';
         } else {
             alert(data.error || 'Código inválido');
