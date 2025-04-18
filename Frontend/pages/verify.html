@@ -1,15 +1,42 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Cuenta verificada</title>
-    <link rel="stylesheet" href="../styles/verify.css">
+  <meta charset="UTF-8">
+  <title>Verificación de Cuenta</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <h2>¡Cuenta verificada con éxito! 🎉</h2>
-        <p>Ahora puedes iniciar sesión.</p>
-        <a href="login.html"><button>Ir al login</button></a>
-    </div>
+<body class="bg-blue-100 flex justify-center items-center h-screen">
+  <div class="text-center">
+    <h1 id="statusMessage" class="text-xl text-gray-800 font-bold mb-4">Verificando tu cuenta...</h1>
+    <p id="redirectMessage" class="text-gray-600"></p>
+  </div>
+
+  <script>
+    // Obtener el token desde la URL
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    if (token) {
+      // Llamar al backend para verificar el token
+      fetch(`http://localhost:3000/api/auth/verify?token=${token}`)
+        .then(response => {
+          if (response.redirected) {
+            // Si el backend hace redirección automática (como lo tienes ahora)
+            window.location.href = response.url;
+          } else if (response.ok) {
+            document.getElementById('statusMessage').textContent = '¡Cuenta verificada exitosamente!';
+            document.getElementById('redirectMessage').textContent = 'Redirigiendo al login...';
+            setTimeout(() => window.location.href = 'login.html', 3000);
+          } else {
+            document.getElementById('statusMessage').textContent = 'Error al verificar la cuenta.';
+          }
+        })
+        .catch(() => {
+          document.getElementById('statusMessage').textContent = 'Ocurrió un error inesperado.';
+        });
+    } else {
+      document.getElementById('statusMessage').textContent = 'Token no proporcionado.';
+    }
+  </script>
 </body>
 </html>
