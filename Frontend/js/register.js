@@ -24,8 +24,13 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         const data = await response.json();
 
         if (response.ok) {
-            alert('Usuario registrado exitosamente');
-            window.location.href = '../pages/login.html'; // Redirigir al login
+            
+            alert(`${data.message}\nRevisa tu correo y haz clic en el enlace para verificar tu cuenta.`);
+
+
+
+            //alert('Usuario registrado exitosamente');
+            //window.location.href = '../pages/login.html'; // Redirigir al login
         } else {
             alert(data.error || 'Error al registrar el usuario');
         }
