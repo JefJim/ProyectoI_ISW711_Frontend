@@ -13,24 +13,54 @@ async function loadUsers() {
         const response = await fetch('http://localhost:3000/api/users', {
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             },
         });
 
-        const users = await response.json();
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+    
+        // Access the data property directly
+        const users = result.data || result; 
+        
         const usersList = document.getElementById('usersList');
+        
+        if (!users || users.length === 0) {
+            usersList.innerHTML = '<p class="text-center text-gray-500">No hay usuarios restringidos</p>';
+            return;
+        }
+
+        // show users if there are any
         usersList.innerHTML = users.map(user => `
             <div class="bg-white p-4 rounded-lg shadow-md mb-4">
-                <h3 class="text-xl font-semibold">${user.fullName}</h3>
-                <p>PIN: ${user.pin}</p>
-                <div class="mt-2">
-                    <button onclick="editUser('${user._id}')" class="bg-yellow-500 text-white px-4 py-2 rounded">Editar</button>
-                    <button onclick="deleteUser('${user._id}')" class="bg-red-500 text-white px-4 py-2 rounded ml-2">Eliminar</button>
+                <div class="flex items-start gap-4">
+                    ${user.avatar ? `
+                    <img src="${user.avatar}" alt="${user.fullName}" class="w-16 h-16 rounded-full object-cover">
+                    ` : ''}
+                    <div>
+                        <h3 class="text-xl font-semibold">${user.fullName || 'Nombre no disponible'}</h3>
+                        <div class="mt-2">
+                            <button onclick="editUser('${user._id}')" class="bg-yellow-500 text-white px-4 py-2 rounded">Editar</button>
+                            <button onclick="deleteUser('${user._id}')" class="bg-red-500 text-white px-4 py-2 rounded ml-2">Eliminar</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         `).join('');
     } catch (error) {
-        console.log('error: ', error);
-        alert('Error al cargar los usuarios');
+        console.error('Error al cargar usuarios:', error);
+        const usersList = document.getElementById('usersList');
+        usersList.innerHTML = `
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+                <p class="font-bold">Error al cargar usuarios</p>
+                <p>${error.message}</p>
+            </div>
+        `;
     }
 }
 //open modal
@@ -47,121 +77,146 @@ function closeUserModal() {
 }
 
 async function editUser(userId) {
-    const token = localStorage.getItem('token');
+    try {
+        const token = localStorage.getItem('token');
+        
+        // Get user data from API
+        const response = await fetch(`http://localhost:3000/api/users/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            },
+        });
 
-    // Get user data
-    const response = await fetch(`http://localhost:3000/api/users/${userId}`, {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        },
-    });
-
-    const user = await response.json();
-    // Show user modal with user data
-    document.getElementById('modalTitle').textContent = 'Editar Usuario';
-    document.getElementById('button').textContent = 'Editar';
-    document.getElementById('userId').value = user._id;
-    document.getElementById('fullName').value = user.fullName;
-    document.getElementById('pin').value = user.pin;
-    const avatarPreview = document.getElementById('avatarPreview');
-    const avatarInput = document.getElementById('avatar');
-    
-    if (user.avatar) {
-        avatarPreview.src = user.avatar; // Show actual image (base64 o URL)
-        avatarPreview.classList.remove('hidden');
-    } else {
-        avatarPreview.classList.add('hidden');
-    }
-    
-    // Clean input file when modal is opened
-    avatarInput.value = ''; 
-    
-    // Event to convert image to base64 when a new file is selected
-    avatarInput.addEventListener('change', function () {
-        const file = avatarInput.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                avatarPreview.src = e.target.result; // Show image preview
-                avatarPreview.classList.remove('hidden');
-            };
-            reader.readAsDataURL(file); // convert to base64
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
         }
-    });
-    document.getElementById('userModal').classList.remove('hidden');
 
-    const editForm = document.getElementById('userForm');
-    editForm.onsubmit = async (e) => {
-        e.preventDefault();
+        const result = await response.json();
+        const user = result.data || result;
+        console.log('User data:', user); // Log the user data for debugging
+        if (!user || !user._id) {
+            throw new Error('Invalid user data received from server');
+        }
 
-        // Get updated user data
-        const updatedUser = {
-            fullName: document.getElementById('fullName').value,
-            pin: document.getElementById('pin').value,
+        document.getElementById('pin').removeAttribute('required');
+        // Store original values for comparison
+        const originalValues = {
+            fullName: user.fullName || '',
+            pin: user.pin || '',
+            avatar: user.avatar || null
         };
+
+        // Update modal with user data
+        document.getElementById('modalTitle').textContent = 'Edit User';
+        document.getElementById('button').textContent = 'Update';
+        document.getElementById('userId').value = user._id;
+        document.getElementById('fullName').value = originalValues.fullName;
+        document.getElementById('pin').value = originalValues.pin;
         
-        // if file is selected, convert it to base64
-        const avatarFile = document.getElementById('avatar').files[0];
-        if (avatarFile) {
-            const reader = new FileReader();
-            reader.onloadend = async function () {
-                updatedUser.avatar = reader.result; // Base64 new avatar
+        const avatarPreview = document.getElementById('avatarPreview');
+        const avatarInput = document.getElementById('avatar');
         
-                await sendUpdatedUser(updatedUser);
-            };
-            reader.readAsDataURL(avatarFile);
+        if (originalValues.avatar) {
+            avatarPreview.src = originalValues.avatar;
+            avatarPreview.classList.remove('hidden');
         } else {
-            updatedUser.avatar = avatarPreview.src; // Maintain the current avatar
-            await sendUpdatedUser(updatedUser);
+            avatarPreview.classList.add('hidden');
         }
         
-        async function sendUpdatedUser(userData) {
+        avatarInput.value = '';
+        
+        avatarInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.src = e.target.result;
+                    avatarPreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('userModal').classList.remove('hidden');
+
+        const editForm = document.getElementById('userForm');
+        editForm.onsubmit = async (e) => {
+            e.preventDefault();
+
+            // Get current form values
+            const currentValues = {
+                fullName: document.getElementById('fullName').value,
+                pin: document.getElementById('pin').value,
+            };
+            
+            // Prepare update object with only changed fields
+            const updatedUser = {};
+            
+            if (currentValues.fullName !== originalValues.fullName) {
+                updatedUser.fullName = currentValues.fullName;
+            }
+            
+            if (currentValues.pin !== originalValues.pin) {
+                // Validate PIN if it's being changed
+                const pinRegex = /^[0-9]{6}$/;
+                if (!pinRegex.test(currentValues.pin)) {
+                    alert('El PIN debe tener 6 dígitos.');
+                    return;
+                }
+                updatedUser.pin = currentValues.pin;
+            }
+            
+            // Handle avatar only if a new file was selected
+            const avatarFile = document.getElementById('avatar').files[0];
+            if (avatarFile) {
+                updatedUser.avatar = await convertToBase64(avatarFile);
+            }
+
+            // Only proceed if there are changes
+            if (Object.keys(updatedUser).length === 0) {
+                alert('No se detectaron cambios para actualizar.');
+                return;
+            }
+
             try {
                 const updateResponse = await fetch(`http://localhost:3000/api/users/${userId}`, {
-                    method: 'PATCH', // o 'PATCH'
+                    method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`,
                     },
-                    body: JSON.stringify(userData),
+                    body: JSON.stringify(updatedUser),
                 });
-        
-                if (updateResponse.ok) {
-                   
-                    document.getElementById('userModal').classList.add('hidden');
-                    loadUsers();
-                } else {
+
+                if (!updateResponse.ok) {
                     const errorData = await updateResponse.json();
-                    alert(errorData.error || 'Error al actualizar el usuario');
+                    throw new Error(errorData.message || 'Failed to update user');
                 }
-            } catch (error) {
-                alert('Error al conectar con el servidor');
-            }
-        }
 
-        try {
-            // sending put request to the server
-            const updateResponse = await fetch(`http://localhost:3000/api/users/${userId}`, {
-                method: 'PATCH', // or 'PATCH'
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(updatedUser),
-            });
-
-            if (updateResponse.ok) {
-                alert('Usuario actualizado correctamente');
                 document.getElementById('userModal').classList.add('hidden');
-                loadUsers();
-            } else {
-                const errorData = await updateResponse.json();
-                alert(errorData.error || 'Error al actualizar el usuario');
+                await loadUsers();
+                
+            } catch (error) {
+                console.error('Update error:', error);
+                alert(`Update failed: ${error.message}`);
             }
-        } catch (error) {
-            alert('Error al conectar con el servidor');
-        }
-    };
+        };
+
+    } catch (error) {
+        console.error('Error loading user for edit:', error);
+        alert(`Error: ${error.message}`);
+    }
+}
+
+// Helper function to convert file to base64
+function convertToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
 }
 // delete user
 async function deleteUser(userId) {

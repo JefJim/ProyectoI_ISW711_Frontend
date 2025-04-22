@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                      alt="${user.fullName}" 
                      class="w-24 h-24 mx-auto rounded-full object-cover">
                 <h2 class="text-xl font-semibold mt-2">${user.fullName}</h2>
-                <p class="text-gray-500 mt-1">PIN: ${user.pin}</p>
                 <button onclick="enterRestrictedUser('${user._id}')" 
                         class="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
                     Entrar

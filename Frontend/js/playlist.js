@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadPlaylists() {
-    loadRestrictedUsers(); // Cargar usuarios en checkboxes
+    loadRestrictedUsers(); // load users in checkboxes
 
     try {
         const token = localStorage.getItem('token');
@@ -80,20 +80,44 @@ async function loadRestrictedUsers() {
         const response = await fetch('http://localhost:3000/api/users', {
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json' 
             },
         });
 
-        const users = await response.json();
+        // verify and handle the response
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        
+        // handle the data
+        const users = result.data || result;
+        
         const associatedProfilesList = document.getElementById('associatedProfilesList');
+        
+        // handle when there are no users
+        if (!users || users.length === 0) {
+            associatedProfilesList.innerHTML = '<p class="text-gray-500 italic">No se han creado perfiles restringidos</p>';
+            return;
+        }
+
+        // Mostrar usuarios en checkboxes
         associatedProfilesList.innerHTML = users.map(user => `
             <label class="flex items-center mt-2">
                 <input type="checkbox" value="${user._id}" class="form-checkbox h-5 w-5 text-blue-600">
-                <span class="ml-2">${user.fullName}</span>
+                <span class="ml-2">${user.fullName || 'Usuario sin nombre'}</span>
             </label>
         `).join('');
     } catch (error) {
         console.error('Error al cargar los usuarios:', error);
-        alert('Error al cargar los usuarios');
+        const associatedProfilesList = document.getElementById('associatedProfilesList');
+        associatedProfilesList.innerHTML = `
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+                <p class="font-bold">Error</p>
+                <p>${error.message}</p>
+            </div>
+        `;
     }
 }
 
@@ -116,35 +140,52 @@ async function editPlaylist(playlistId) {
         const response = await fetch(`http://localhost:3000/api/playlists/${playlistId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
             },
         });
 
+        // verify if the response is ok
         if (!response.ok) {
-            throw new Error('Error al cargar la playlist');
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-        const playlist = await response.json();
-        // Update modal with playlist data
+
+        const result = await response.json();
+        
+        console.log('Respuesta completa del servidor:', result);
+        
+        // access the playlist data
+        const playlist = result.data || result;
+        
+        // verify if the playlist has the required data
+        if (!playlist || !playlist._id || !playlist.name) {
+            throw new Error('La playlist no contiene los datos necesarios');
+        }
+
+        // update modal with playlist data
         document.getElementById('modalTitle').textContent = 'Editar Playlist';
-        document.getElementById('submitbutton').textContent = 'Editar';
         document.getElementById('playlistId').value = playlist._id;
-        document.getElementById('name').value = playlist.name;
-
-        // Load all users and select the ones associated with the playlist
+        document.getElementById('name').value = playlist.name || ''; // Valor por defecto si es undefined
+        
+        // load users in checkboxes
         await loadRestrictedUsers();
+        
+        // Select checkboxes for associated profiles
+        if (playlist.associatedProfiles && Array.isArray(playlist.associatedProfiles)) {
+            const checkboxes = document.querySelectorAll('#associatedProfilesList input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                const isAssociated = playlist.associatedProfiles.some(
+                    profile => profile._id === checkbox.value || profile === checkbox.value
+                );
+                checkbox.checked = isAssociated;
+            });
+        }
 
-        // Select users previously associated with the playlist
-        const associatedProfilesList = document.getElementById('associatedProfilesList');
-        Array.from(associatedProfilesList.querySelectorAll('input[type="checkbox"]')).forEach(checkbox => {
-            if (playlist.associatedProfiles.some(profile => profile._id === checkbox.value)) {
-                checkbox.checked = true; // Check the checkbox if user is associated
-            }
-        });
-
-        // Show modal
+        // show modal
         document.getElementById('playlistModal').classList.remove('hidden');
+
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error al cargar la playlist');
+        console.error('Error al cargar playlist para editar:', error);
+        alert(`Error: ${error.message}`);
     }
 }
 
