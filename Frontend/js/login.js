@@ -63,3 +63,32 @@ document.getElementById('verifyCodeBtn').addEventListener('click', async () => {
 document.getElementById('cancel2FABtn').addEventListener('click', () => {
     document.getElementById('twoFAModal').classList.add('hidden');
 });
+document.getElementById('googleAuthBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    try {
+      // Abrir ventana de autenticación
+      const googleAuthWindow = window.open(
+        'http://localhost:3000/api/auth/google',
+        'GoogleAuth',
+        'width=500,height=600'
+      );
+      
+      // Escuchar mensajes del popup
+      window.addEventListener('message', (event) => {
+        if (event.origin !== 'http://localhost:3000') return;
+        
+        if (event.data.token) {
+          // Guardar token y redirigir
+          localStorage.setItem('token', event.data.token);
+          window.location.href = '/dashboard.html';
+        } else if (event.data.error) {
+          alert(event.data.error);
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error en autenticación con Google:', error);
+      alert('Error al iniciar sesión con Google');
+    }
+  });
