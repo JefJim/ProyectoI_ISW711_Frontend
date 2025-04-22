@@ -12,16 +12,16 @@
   </div>
 
   <script>
-    // Obtener el token desde la URL
+    // Obtiene el token desde la URL
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
 
     if (token) {
-      // Llamar al backend para verificar el token
+      // Llama al backend para verificar el token
       fetch(`http://localhost:3000/api/auth/verify?token=${token}`)
         .then(response => {
           if (response.redirected) {
-            // Si el backend hace redirección automática (como lo tienes ahora)
+            // Si el backend hace la redirección automática la cuenta se verifica correctamente 
             window.location.href = response.url;
           } else if (response.ok) {
             document.getElementById('statusMessage').textContent = '¡Cuenta verificada exitosamente!';
