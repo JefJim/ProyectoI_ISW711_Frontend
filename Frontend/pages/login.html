@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - KidsTube</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-blue-200">
     <div class="container mx-auto p-4 b">
         <h1 class="text-3xl font-bold text-center mb-8">Iniciar Sesión</h1>
@@ -16,23 +18,41 @@
             </div>
             <div class="mb-4">
                 <label for="password" class="">Contraseña</label>
-                <input type="password" id="password" name="password" class="w-full px-3 py-2 border rounded-lg" required>
+                <input type="password" id="password" name="password" class="w-full px-3 py-2 border rounded-lg"
+                    required>
             </div>
             <button type="submit" class="w-full bg-red-500 text-white px-4 py-2 rounded-lg">Iniciar Sesión</button>
-        </form>
-        <p class="text-center mt-4">¿No tienes una cuenta? <a href="../pages/register.html" class="text-blue-500">Regístrate</a></p>
-    </div>
-        <!-- Modal para 2FA (oculto inicialmente) -->
-        <div id="twoFAModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-                <h2 class="text-2xl font-bold mb-4">Verificación en Dos Pasos</h2>
-                <p class="mb-4">Ingresa el código de 6 dígitos enviado a tu teléfono:</p>
-                <input type="text" id="verificationCode" placeholder="Código" class="w-full px-3 py-2 border rounded-lg mb-4">
-                <button id="verifyCodeBtn" class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-red-700">Verificar</button>
-                <button id="cancel2FABtn" class="w-full mt-2 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">Cancelar</button>
+            <!-- Dentro del formulario de login, después del botón de submit -->
+            <div class="mb-4">
+                <div class="flex items-center my-4">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="mx-4 text-gray-500">o</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+                <button id="googleAuthBtn" type="button" class="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">
+                    <img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5">
+                    Continuar con Google
+                  </button>
             </div>
+        </form>
+        <p class="text-center mt-4">¿No tienes una cuenta? <a href="../pages/register.html"
+                class="text-blue-500">Regístrate</a></p>
+    </div>
+    <!-- Modal para 2FA (oculto inicialmente) -->
+    <div id="twoFAModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h2 class="text-2xl font-bold mb-4">Verificación en Dos Pasos</h2>
+            <p class="mb-4">Ingresa el código de 6 dígitos enviado a tu teléfono:</p>
+            <input type="text" id="verificationCode" placeholder="Código"
+                class="w-full px-3 py-2 border rounded-lg mb-4">
+            <button id="verifyCodeBtn"
+                class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-red-700">Verificar</button>
+            <button id="cancel2FABtn"
+                class="w-full mt-2 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">Cancelar</button>
         </div>
+    </div>
     <script src="../js/login.js"></script>
 
 </body>
+
 </html>
