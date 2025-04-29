@@ -17,68 +17,86 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadVideos(playlistId) {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:3000/api/videos/playlist/${playlistId}`, {
+        const userId = localStorage.getItem('userId');
+
+        const query = `
+            query GetPlaylistVideos($playlistId: ID!, $userId: ID!) {
+                playlistVideos(playlistId: $playlistId, userId: $userId) {
+                    _id
+                    name
+                    url
+                    description
+                    duration
+                    playlist {
+                        _id
+                        createdBy {
+                            _id
+                        }
+                    }
+                }
+            }
+        `;
+
+        const response = await fetch('http://localhost:3000/graphql', {
+            method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
+            body: JSON.stringify({
+                query,
+                variables: { playlistId, userId }
+            })
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Error al cargar videos');
-        }
-
         const result = await response.json();
-        const videos = result.data;
         
+        if (result.errors) {
+            throw new Error(result.errors[0].message);
+        }
         const videosList = document.getElementById('videosList');
+        const videos = result.data.playlistVideos;
+        if (videos.length === 0) {
+            videosList.innerHTML = '<p class="text-center text-gray-500 py-4">No hay videos válidos en esta playlist</p>';
+            return;
+          }
         
         if (!videos || videos.length === 0) {
             videosList.innerHTML = '<p class="text-center text-gray-500 py-4">Aún no se han agregado videos</p>';
             return;
         }
 
-        // show videos
+        // Mostrar videos (mantén tu lógica actual de renderizado)
         videosList.innerHTML = videos.map(video => `
-            <div class="bg-white p-4 rounded-lg shadow-md mb-6">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <!-- Video Embed -->
-                    <div class="w-full md:w-1/2">
+            <div class="w-85 h-100 bg-white p-4 rounded-lg shadow-md mb-4">
+                <div class="flex flex-col space-y-2">
+                    <!-- Título del video -->
+                    <h3 class="text-lg font-semibold line-clamp-2">${video.name}</h3>
+                    
+                    <!-- Video embed (tamaño reducido) -->
+                    <div class="aspect-w-16 aspect-h-9">
                         <iframe 
-                            class="w-full h-64 rounded-lg"
+                            class="w-80 h-48 rounded-lg"  // 320x180 aprox
                             src="https://www.youtube.com/embed/${extractVideoId(video.url)}"
                             frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen>
                         </iframe>
                     </div>
-                    
-                    <!-- Información del video -->
-                    <div class="w-full md:w-1/2">
-                        <h3 class="text-xl font-semibold mb-2">${video.name}</h3>
-                        <p class="text-gray-600 mb-2">${video.description || 'Sin descripción'}</p>
-                        
-                        ${video.duration ? `
-                        <div class="flex items-center text-sm text-gray-500 mb-4">
-                            <span>Duración: ${formatDuration(video.duration)}</span>
-                        </div>
-                        ` : ''}
-                        
-                        <!-- Controles CRUD -->
-                        <div class="flex flex-wrap gap-2 mt-4">
-                            <button onclick="editVideo('${video._id}')" 
-                                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded transition">
-                                <i class="fas fa-edit mr-2"></i>Editar
-                            </button>
-                            <button onclick="deleteVideo('${video._id}')" 
-                                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition">
-                                <i class="fas fa-trash mr-2"></i>Eliminar
-                            </button>
-                            <a href="${video.url}" target="_blank" 
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition">
-                                <i class="fas fa-external-link-alt mr-2"></i>Ver en YouTube
-                            </a>
-                        </div>
+                        ${video.description ? `
+                    <p class="text-sm text-gray-600 line-clamp-2">
+                        ${video.description}
+                    </p>
+                    ` : ''}
+                                        <div class="flex flex-wrap gap-2 mt-2">
+                        <button onclick="editVideo('${video._id}')" 
+                            class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
+                            Editar
+                        </button>
+                        <button onclick="deleteVideo('${video._id}')" 
+                            class="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                            Eliminar
+                        </button>
                     </div>
                 </div>
             </div>
