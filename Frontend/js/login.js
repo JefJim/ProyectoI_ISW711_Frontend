@@ -24,11 +24,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             document.getElementById('twoFAModal').classList.remove('hidden');
             document.getElementById('verifyCodeBtn').setAttribute('data-email', email);
         } else {
-            
+
             // Redirigir si no requiere 2FA (por si acaso)
             window.location.href = '/dashboard.html';
         }
-        
+
     } catch (error) {
         console.error('Error en login:', error);
         alert(error.message || 'Error en el servidor');
@@ -63,32 +63,28 @@ document.getElementById('verifyCodeBtn').addEventListener('click', async () => {
 document.getElementById('cancel2FABtn').addEventListener('click', () => {
     document.getElementById('twoFAModal').classList.add('hidden');
 });
-document.getElementById('googleAuthBtn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    
-    try {
-      // Abrir ventana de autenticación
-      const googleAuthWindow = window.open(
-        'http://localhost:3000/api/auth/google',
-        'GoogleAuth',
-        'width=500,height=600'
-      );
-      
-      // Escuchar mensajes del popup
-      window.addEventListener('message', (event) => {
-        if (event.origin !== 'http://localhost:3000') return;
-        
-        if (event.data.token) {
-          // Guardar token y redirigir
-          localStorage.setItem('token', event.data.token);
-          window.location.href = '/dashboard.html';
-        } else if (event.data.error) {
-          alert(event.data.error);
-        }
-      });
-      
-    } catch (error) {
-      console.error('Error en autenticación con Google:', error);
-      alert('Error al iniciar sesión con Google');
+
+window.handleCredentialResponse = async function(response) {
+  try {
+    const backendResponse = await fetch('http://localhost:3000/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tokenId: response.credential }), // ¡Corrige el typo "credential"!
+    });
+
+    const data = await backendResponse.json();
+    console.log("Respuesta del backend:", data);
+
+    if (data.requiresAdditionalInfo) {
+      // Redirige al formulario de registro con el tempToken
+      window.location.href = `../pages/complete-registration.html?token=${encodeURIComponent(data.tempToken)}`;
+    } else if (data.token) {
+      localStorage.setItem('userId', data.user.id); // Almacena el userId
+      localStorage.setItem('token', data.token);
+      window.location.href = '../pages/dashboard.html';
     }
-  });
+  } catch (error) {
+    console.error("Error:", error);
+    alert("Error al autenticar con Google");
+  }
+};

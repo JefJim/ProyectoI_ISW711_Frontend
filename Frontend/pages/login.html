@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - KidsTube</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
 </head>
 
 <body class="bg-blue-200">
@@ -29,10 +31,14 @@
                     <span class="mx-4 text-gray-500">o</span>
                     <div class="flex-grow border-t border-gray-300"></div>
                 </div>
-                <button id="googleAuthBtn" type="button" class="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">
-                    <img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5">
-                    Continuar con Google
-                  </button>
+                <div id="g_id_onload"
+                    data-client_id="299440478898-didb852kauolvm22tjugfk02thm1at3k.apps.googleusercontent.com"
+                    data-callback="handleCredentialResponse" data-auto_prompt="false">
+                </div>
+
+                <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline"
+                    data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left">
+                </div>
             </div>
         </form>
         <p class="text-center mt-4">¿No tienes una cuenta? <a href="../pages/register.html"
