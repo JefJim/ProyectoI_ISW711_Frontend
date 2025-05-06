@@ -141,6 +141,14 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 
         if (response.ok) {
             alert(`${data.message}\nRevisa tu correo y haz clic en el enlace para verificar tu cuenta.`);
+            // clean data
+            document.getElementById('registerForm').reset();
+
+            // reset selects if use inner
+            document.getElementById('country').selectedIndex = 0;
+            document.getElementById('countryCode').selectedIndex = 0;
+
+           
         } else {
             // show error message in the backend
             alert(data.error || 'Error al registrar el usuario');
