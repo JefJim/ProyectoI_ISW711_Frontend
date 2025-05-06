@@ -1,3 +1,5 @@
+let todosLosVideos = [];
+
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -5,19 +7,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    const playlistId = new URLSearchParams(window.location.search).get('playlistId');
-    if (!playlistId) {
+    const playlistID = new URLSearchParams(window.location.search).get('playlistId');
+    if (!playlistID) {
         window.location.href = '../pages/playlists.html';
         return;
     }
 
-    await loadVideos(playlistId);
+    await loadVideos(playlistID);
 });
 
-async function loadVideos(playlistId) {
+async function loadVideos(playlistID) {
     try {
         const token = localStorage.getItem('token');
-        const userId = localStorage.getItem('userId');
+        const userID = localStorage.getItem('userId');
 
         const query = `
             query GetPlaylistVideos($playlistId: ID!, $userId: ID!) {
@@ -45,56 +47,52 @@ async function loadVideos(playlistId) {
             },
             body: JSON.stringify({
                 query,
-                variables: { playlistId, userId }
+                variables: { playlistId: playlistID, userId: userID }
             })
         });
 
         const result = await response.json();
-        
+
         if (result.errors) {
             throw new Error(result.errors[0].message);
         }
+
         const videosList = document.getElementById('videosList');
         const videos = result.data.playlistVideos;
+        todosLosVideos = videos; // Guardamos la lista completa
         if (videos.length === 0) {
             videosList.innerHTML = '<p class="text-center text-gray-500 py-4">No hay videos válidos en esta playlist</p>';
             return;
-          }
-        
+        }
+
         if (!videos || videos.length === 0) {
             videosList.innerHTML = '<p class="text-center text-gray-500 py-4">Aún no se han agregado videos</p>';
             return;
         }
 
-        // Mostrar videos (mantén tu lógica actual de renderizado)
         videosList.innerHTML = videos.map(video => `
             <div class="w-85 h-100 bg-white p-4 rounded-lg shadow-md mb-4">
                 <div class="flex flex-col space-y-2">
-                    <!-- Título del video -->
                     <h3 class="text-lg font-semibold line-clamp-2">${video.name}</h3>
-                    
-                    <!-- Video embed (tamaño reducido) -->
                     <div class="aspect-w-16 aspect-h-9">
                         <iframe 
-                            class="w-80 h-48 rounded-lg"  // 320x180 aprox
+                            class="w-80 h-48 rounded-lg"
                             src="https://www.youtube.com/embed/${extractVideoId(video.url)}"
                             frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen>
                         </iframe>
                     </div>
-                        ${video.description ? `
-                    <p class="text-sm text-gray-600 line-clamp-2">
-                        ${video.description}
-                    </p>
+                    ${video.description ? `
+                        <p class="text-sm text-gray-600 line-clamp-2">
+                            ${video.description}
+                        </p>
                     ` : ''}
-                                        <div class="flex flex-wrap gap-2 mt-2">
-                        <button onclick="editVideo('${video._id}')" 
-                            class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <button onclick="editVideo('${video._id}')" class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
                             Editar
                         </button>
-                        <button onclick="deleteVideo('${video._id}')" 
-                            class="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                        <button onclick="deleteVideo('${video._id}')" class="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
                             Eliminar
                         </button>
                     </div>
@@ -113,30 +111,27 @@ async function loadVideos(playlistId) {
     }
 }
 
-// funtion to format ISO 8601 duration (PT#H#M#S) to HH:MM:SS or MM:SS
 function formatDuration(isoDuration) {
     if (!isoDuration) return '';
     
-    // get hours, minutes and seconds from ISO 8601 duration
     const hours = isoDuration.match(/(\d+)H/);  
     const minutes = isoDuration.match(/(\d+)M/);
     const seconds = isoDuration.match(/(\d+)S/);
-    
-    // format each component to 2 digits
+
     const hh = hours ? hours[1].padStart(2, '0') : '00';
     const mm = minutes ? minutes[1].padStart(2, '0') : '00';
     const ss = seconds ? seconds[1].padStart(2, '0') : '00';
-    
-    // build final format
+
     if (hours) {
-        return `${hh}:${mm}:${ss}`; // format HH:MM:SS
+        return `${hh}:${mm}:${ss}`;
     } else {
-        return `${mm}:${ss}`; // format MM:SS for <1h duration
+        return `${mm}:${ss}`;
     }
 }
-function extractVideoId(url) {
-    if (!url) return null;
-    
+
+function extractVideoId(videoURL) {
+    if (!videoURL) return null;
+
     const patterns = [
         /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i,
         /youtu\.be\/([^"&?\/\s]{11})/i,
@@ -145,14 +140,13 @@ function extractVideoId(url) {
     ];
 
     for (const pattern of patterns) {
-        const match = url.match(pattern);
+        const match = videoURL.match(pattern);
         if (match && match[1]) {
             return match[1];
         }
     }
     return null;
 }
-
 
 function openAddVideoModal() {
     document.getElementById('modalTitle').textContent = 'Agregar Video';
@@ -165,42 +159,37 @@ function closeVideoModal() {
     document.getElementById('videoModal').classList.add('hidden');
 }
 
-async function editVideo(videoId) {
+async function editVideo(videoID) {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:3000/api/videos/${videoId}`, {
+        const response = await fetch(`http://localhost:3000/api/videos/${videoID}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
         });
 
-        // Veryfy if the response is ok
         if (!response.ok) {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         
-        // verify if the result has data
         if (!result || !result.data) {
             throw new Error('La respuesta del servidor no contiene datos válidos');
         }
 
-        const video = result.data; // access the video data
+        const video = result.data;
 
-        // verify if the video has the required data
         if (!video._id || !video.name || !video.url) {
             throw new Error('Faltan campos requeridos en los datos del video');
         }
 
-        // fill the modal with video data
         document.getElementById('modalTitle').textContent = 'Editar Video';
         document.getElementById('videoId').value = video._id || '';
         document.getElementById('name').value = video.name || '';
         document.getElementById('url').value = video.url || '';
         document.getElementById('description').value = video.description || '';
         
-        // show modal
         document.getElementById('videoModal').classList.remove('hidden');
 
     } catch (error) {
@@ -209,10 +198,10 @@ async function editVideo(videoId) {
     }
 }
 
-async function deleteVideo(videoId) {
+async function deleteVideo(videoID) {
     const token = localStorage.getItem('token');
     if (confirm('¿Estás seguro de eliminar este video?')) {
-        await fetch(`http://localhost:3000/api/videos/${videoId}`, {
+        await fetch(`http://localhost:3000/api/videos/${videoID}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -225,25 +214,70 @@ async function deleteVideo(videoId) {
 document.getElementById('videoForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const videoId = document.getElementById('videoId').value;
-    const name = document.getElementById('name').value;
-    const videoUrl = document.getElementById('url').value; // 
-    const description = document.getElementById('description').value;
-    const playlistId = new URLSearchParams(window.location.search).get('playlistId');
+    const videoID = document.getElementById('videoId').value;
+    const videoName = document.getElementById('name').value;
+    const videoURL = document.getElementById('url').value;
+    const videoDescription = document.getElementById('description').value;
+    const playlistID = new URLSearchParams(window.location.search).get('playlistId');
 
-    const apiUrl = videoId ? `http://localhost:3000/api/videos/${videoId}` : 'http://localhost:3000/api/videos'; 
-    const method = videoId ? 'PUT' : 'POST';
+    const apiURL = videoID ? `http://localhost:3000/api/videos/${videoID}` : 'http://localhost:3000/api/videos'; 
+    const method = videoID ? 'PUT' : 'POST';
     const token = localStorage.getItem('token');
 
-    await fetch(apiUrl, {
+    await fetch(apiURL, {
         method,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ name, url: videoUrl, description, playlist: playlistId }),
+        body: JSON.stringify({ name: videoName, url: videoURL, description: videoDescription, playlist: playlistID }),
     });
 
     closeVideoModal();
-    await loadVideos(playlistId);
+    await loadVideos(playlistID);
 });
+function filtrarVideos() {
+    const termino = document.getElementById('searchInput').value.toLowerCase();
+
+    const videosFiltrados = todosLosVideos.filter(video =>
+        video.name.toLowerCase().includes(termino) ||
+        (video.description && video.description.toLowerCase().includes(termino))
+    );
+
+    const videosList = document.getElementById('videosList');
+
+    if (videosFiltrados.length === 0) {
+        videosList.innerHTML = '<p class="text-center text-gray-500 py-4">No se encontraron videos</p>';
+        return;
+    }
+
+    videosList.innerHTML = videosFiltrados.map(video => `
+        <div class="w-85 h-100 bg-white p-4 rounded-lg shadow-md mb-4">
+            <div class="flex flex-col space-y-2">
+                <h3 class="text-lg font-semibold line-clamp-2">${video.name}</h3>
+                <div class="aspect-w-16 aspect-h-9">
+                    <iframe 
+                        class="w-80 h-48 rounded-lg"
+                        src="https://www.youtube.com/embed/${extractVideoId(video.url)}"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                ${video.description ? `
+                    <p class="text-sm text-gray-600 line-clamp-2">
+                        ${video.description}
+                    </p>
+                ` : ''}
+                <div class="flex flex-wrap gap-2 mt-2">
+                    <button onclick="editVideo('${video._id}')" class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
+                        Editar
+                    </button>
+                    <button onclick="deleteVideo('${video._id}')" class="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
