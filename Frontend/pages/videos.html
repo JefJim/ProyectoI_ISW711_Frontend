@@ -13,11 +13,25 @@
         <button onclick="window.location.href='playlist.html'" class="bg-red-500 text-white px-4 py-2 rounded">
             Volver
         </button>
+
+
+
+        <div class="my-4">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Buscar videos por nombre o descripción..." 
+                class="w-full px-4 py-2 border rounded-lg"
+                oninput="filtrarVideos()"
+            >
+        </div>
+        
+
         <div id="videosList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
             <!-- Los videos se insertarán aquí -->
         </div>
     </div>
-
+    
     <!-- Modal para agregar/editar videos -->
     <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
         <div class="bg-white p-6 rounded-lg w-full max-w-md">
